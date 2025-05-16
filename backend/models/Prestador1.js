@@ -1,4 +1,3 @@
-
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
@@ -6,7 +5,7 @@ module.exports = (sequelize) => {
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: 'user_id'
+      field: 'user_id' // <-- campo físico no banco
     },
     nome: {
       type: DataTypes.STRING,
@@ -38,6 +37,14 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: true
     },
+    entrada: {
+      type: DataTypes.DATEONLY,
+      allowNull: true
+    },
+    saida: {
+      type: DataTypes.DATEONLY,
+      allowNull: true
+    },
     cnpj: {
       type: DataTypes.STRING,
       allowNull: true
@@ -52,9 +59,9 @@ module.exports = (sequelize) => {
     }
   }, {
     tableName: 'prestadores',
+    timestamps: true,
     createdAt: 'criadoEm',
-    updatedAt: 'atualizadoEm',
-    timestamps: true
+    updatedAt: 'atualizadoEm'
   });
 
   return Prestador;

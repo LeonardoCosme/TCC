@@ -22,7 +22,7 @@ export default function HomePage() {
 
           {/* Card - Contratar */}
           <div
-            onClick={() => router.push('/servicos-disponiveis')}
+            onClick={() => router.push('/contratar-prestador')}
             className="cursor-pointer bg-white shadow-lg rounded-xl p-6 hover:shadow-xl transition hover:scale-105 flex flex-col items-center text-center"
           >
             <Briefcase className="w-12 h-12 text-orange-500 mb-4 animate-pulse" />

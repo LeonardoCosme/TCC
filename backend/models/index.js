@@ -15,11 +15,13 @@ const sequelize = new Sequelize(
 // Importa os modelos passando a conexão
 const User = require('./User')(sequelize);
 const Prestador = require('./Prestador')(sequelize);
+const Servico = require('./Servico')(sequelize); // ✅ ADICIONADO
 
 // Exporta os modelos e a conexão
 module.exports = {
   sequelize,
   Sequelize,
   User,
-  Prestador
+  Prestador,
+  Servico // ✅ ADICIONADO
 };

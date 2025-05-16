@@ -1,4 +1,3 @@
-
 const { Prestador } = require('../models');
 require('dotenv').config();
 
@@ -20,52 +19,52 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// 💾 Criar ou atualizar dados do prestador (sem campos de data de entrada/saída)
+// 💾 Criar ou atualizar dados do prestador
 exports.savePrestador = async (req, res) => {
   const userId = req.userId;
 
   const {
     nome,
     cpf,
-    enderecoResidencial,
-    enderecoComercial,
+    endereco_residencial, // recebido do frontend
+    endereco_comercial,   // recebido do frontend
     telefone,
     profissao,
     empresa,
+    entrada,
+    saida,
     cnpj
   } = req.body;
+
+  if (!nome || !cpf || !telefone || !endereco_residencial || !profissao) {
+    return res.status(400).json({ error: 'Preencha todos os campos obrigatórios.' });
+  }
 
   try {
     const existing = await Prestador.findOne({ where: { userId } });
 
-    if (existing) {
-      await existing.update({
-        nome,
-        cpf,
-        enderecoResidencial,
-        enderecoComercial,
-        telefone,
-        profissao,
-        empresa,
-        cnpj
-      });
-
-      return res.json({ message: 'Dados do prestador atualizados com sucesso!' });
-    }
-
-    await Prestador.create({
+    const dados = {
       userId,
       nome,
       cpf,
-      enderecoResidencial,
-      enderecoComercial,
       telefone,
+      enderecoResidencial: endereco_residencial,
+      enderecoComercial: endereco_comercial,
       profissao,
       empresa,
+      entrada,
+      saida,
       cnpj
-    });
+    };
 
+    if (existing) {
+      await existing.update(dados);
+      return res.json({ message: 'Dados do prestador atualizados com sucesso!' });
+    }
+
+    await Prestador.create(dados);
     return res.status(201).json({ message: 'Prestador cadastrado com sucesso!' });
+
   } catch (error) {
     console.error('Erro ao salvar prestador:', error);
     return res.status(500).json({ error: 'Erro ao salvar dados do prestador.' });

@@ -2,16 +2,49 @@ const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
   const User = sequelize.define('User', {
-    name: DataTypes.STRING,
-    address: DataTypes.STRING,
-    phone: DataTypes.STRING,
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'O nome não pode ser vazio.' }
+      }
+    },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'O endereço não pode ser vazio.' }
+      }
+    },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'O telefone não pode ser vazio.' }
+      }
+    },
     email: {
       type: DataTypes.STRING,
-      unique: true
+      allowNull: false,
+      unique: {
+        msg: 'Este e-mail já está cadastrado.'
+      },
+      validate: {
+        isEmail: { msg: 'E-mail inválido.' },
+        notEmpty: { msg: 'O e-mail é obrigatório.' }
+      }
     },
-    password: DataTypes.STRING
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'A senha é obrigatória.' }
+      }
+    }
   }, {
-    tableName: 'users'
+    tableName: 'users',
+    timestamps: true,
+    underscored: true
   });
 
   return User;

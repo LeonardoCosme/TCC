@@ -1,35 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
+import { getToken } from '../utils/auth';
 
-const servicos = [
-  {
-    id: 1,
-    titulo: 'Instalação de chuveiro',
-    descricao: 'Precisa instalar um chuveiro elétrico no banheiro.',
-    local: 'Rua A, 123',
-    data: '10/04/2025',
-    horario: '14:00'
-  },
-  {
-    id: 2,
-    titulo: 'Montagem de móveis',
-    descricao: 'Montar guarda-roupa de 6 portas.',
-    local: 'Av. Brasil, 987',
-    data: '11/04/2025',
-    horario: '09:00'
-  },
-  {
-    id: 3,
-    titulo: 'Reparo elétrico',
-    descricao: 'Trocar tomadas e interruptores em apartamento.',
-    local: 'Rua das Palmeiras, 321',
-    data: '12/04/2025',
-    horario: '13:00'
-  }
-];
+interface Servico {
+  id: number;
+  nome: string;
+  telefone: string;
+  tipo: string;
+  observacao: string;
+  local: string;
+  valor: string;
+  urgente: boolean;
+  userId: number;
+}
 
 export default function ServicosDisponiveis() {
-  const [popupServico, setPopupServico] = useState<any>(null);
+  const [servicos, setServicos] = useState<Servico[]>([]);
+  const [popupServico, setPopupServico] = useState<Servico | null>(null);
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/servicos`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => setServicos(data))
+      .catch(err => console.error('Erro ao buscar serviços:', err));
+  }, []);
 
   return (
     <Layout>
@@ -40,13 +41,22 @@ export default function ServicosDisponiveis() {
           {servicos.map((servico) => (
             <div
               key={servico.id}
-              className="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition cursor-pointer"
+              className={`p-4 rounded-xl shadow-md hover:shadow-lg transition cursor-pointer border-2 relative ${
+                servico.urgente ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-white'
+              }`}
               onClick={() => setPopupServico(servico)}
             >
-              <h2 className="text-xl font-semibold text-orange-600">{servico.titulo}</h2>
-              <p className="text-sm text-gray-700 mt-2">{servico.descricao}</p>
-              <p className="text-xs text-gray-500 mt-2">{servico.local}</p>
-              <p className="text-xs text-gray-500">{servico.data} às {servico.horario}</p>
+              <h2 className="text-xl font-semibold text-orange-600 capitalize">{servico.tipo}</h2>
+              <p className="text-sm text-gray-700 mt-2">{servico.observacao}</p>
+              <p className="text-xs text-gray-500 mt-1"><strong>Cliente:</strong> {servico.nome}</p>
+              <p className="text-xs text-gray-500">{servico.local}</p>
+              <p className="text-xs text-gray-600 font-semibold mt-1">R$ {parseFloat(servico.valor).toFixed(2)}</p>
+
+              {servico.urgente && (
+                <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded shadow animate-pulse">
+                  URGENTE 🔥
+                </span>
+              )}
             </div>
           ))}
         </div>
@@ -54,10 +64,12 @@ export default function ServicosDisponiveis() {
         {popupServico && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
             <div className="bg-white p-6 rounded-xl w-full max-w-md shadow-xl relative animate-fade-in">
-              <h2 className="text-xl font-bold text-orange-600 mb-4">{popupServico.titulo}</h2>
-              <p className="mb-2"><strong>Descrição:</strong> {popupServico.descricao}</p>
+              <h2 className="text-xl font-bold text-orange-600 mb-4 capitalize">{popupServico.tipo}</h2>
+              <p className="mb-2"><strong>Descrição:</strong> {popupServico.observacao}</p>
+              <p className="mb-2"><strong>Cliente:</strong> {popupServico.nome}</p>
               <p className="mb-2"><strong>Local:</strong> {popupServico.local}</p>
-              <p className="mb-2"><strong>Data:</strong> {popupServico.data} às {popupServico.horario}</p>
+              <p className="mb-2"><strong>Valor:</strong> R$ {parseFloat(popupServico.valor).toFixed(2)}</p>
+              <p className="mb-2"><strong>Urgente:</strong> {popupServico.urgente ? 'Sim' : 'Não'}</p>
 
               <div className="flex justify-end gap-3 mt-6">
                 <button

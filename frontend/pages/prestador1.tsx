@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
@@ -101,55 +100,55 @@ export default function PrestadorPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const token = getToken();
+  e.preventDefault();
+  const token = getToken();
 
-    if (!token) {
-      alert("Usuário não autenticado. Faça login novamente.");
-      router.push("/login");
-      return;
-    }
+  if (!token) {
+    alert("Usuário não autenticado. Faça login novamente.");
+    router.push("/login");
+    return;
+  }
 
-    const obrigatorios = ["nome", "telefone", "email", "cpf", "enderecoResidencial", "profissao"];
-    const dadosFaltando = obrigatorios.filter(campo => !formData[campo as keyof typeof formData]);
+  const obrigatorios = ["nome", "telefone", "email", "cpf", "enderecoResidencial", "profissao"];
+  const dadosFaltando = obrigatorios.filter(campo => !formData[campo as keyof typeof formData]);
 
-    if (dadosFaltando.length > 0) {
-      alert(`Preencha os campos obrigatórios: ${dadosFaltando.join(", ")}`);
-      return;
-    }
+  if (dadosFaltando.length > 0) {
+    alert(`Preencha os campos obrigatórios: ${dadosFaltando.join(", ")}`);
+    return;
+  }
 
-    const payload = {
-      ...formData,
-      cnpj: formData.cnpj || null
-    };
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/prestador`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const contentType = response.headers.get("content-type");
-        const errorMsg = contentType?.includes("application/json")
-          ? (await response.json()).error
-          : await response.text();
-
-        console.error("Erro na API:", errorMsg);
-        alert(errorMsg || "Erro ao salvar os dados.");
-        return;
-      }
-
-      router.push("/servicos-disponiveis");
-    } catch (error) {
-      console.error("Erro ao enviar requisição:", error);
-      alert("Erro ao salvar os dados. Verifique sua conexão.");
-    }
+  const payload = {
+    ...formData,
+    cnpj: formData.cnpj || null
   };
+
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/prestador`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const contentType = response.headers.get("content-type");
+      const errorMsg = contentType?.includes("application/json")
+        ? (await response.json()).error
+        : await response.text();
+      
+      console.error("Erro na API:", errorMsg);
+      alert(errorMsg || "Erro ao salvar os dados.");
+      return;
+    }
+
+    router.push("/servicos-disponiveis");
+  } catch (error) {
+    console.error("Erro ao enviar requisição:", error);
+    alert("Erro ao salvar os dados. Verifique sua conexão.");
+  }
+};
 
   if (loading) {
     return (
@@ -184,6 +183,8 @@ export default function PrestadorPage() {
             <input name="enderecoComercial" value={formData.enderecoComercial} onChange={handleChange} className="input-field" placeholder="Endereço comercial (opcional)" />
             <input name="profissao" value={formData.profissao} onChange={handleChange} className="input-field" placeholder="Profissão" />
             <input name="empresa" value={formData.empresa} onChange={handleChange} className="input-field" placeholder="Empresa atual ou anterior" />
+            <input name="entrada" type="date" value={formData.entrada} onChange={handleChange} className="input-field" />
+            <input name="saida" type="date" value={formData.saida} onChange={handleChange} className="input-field" />
             <input name="cnpj" value={formData.cnpj} onChange={handleChange} className="input-field" placeholder="CNPJ (se houver)" />
 
             <div className="md:col-span-2">
