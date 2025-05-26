@@ -1,9 +1,17 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { User } = require('../models');
+const { check } = require('express-validator');
 require('dotenv').config();
 
-exports.resetPassword = async (req, res) => {
+exports.validateResetPassword = [
+  check('token').notEmpty().withMessage('Token é obrigatório.'),
+  check('password')
+    .isStrongPassword()
+    .withMessage('A nova senha deve conter letras maiúsculas, minúsculas, número e caractere especial.')
+];
+
+async function resetPassword(req, res) {
   const { token, password } = req.body;
 
   if (!token || !password) {
@@ -34,4 +42,6 @@ exports.resetPassword = async (req, res) => {
     console.error(error);
     return res.status(400).json({ error: 'Token inválido ou expirado.' });
   }
-};
+}
+
+exports.resetPassword = resetPassword;

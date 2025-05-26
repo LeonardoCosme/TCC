@@ -1,28 +1,42 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
+const { check, validationResult } = require('express-validator');
+const sanitizeHtml = require('sanitize-html');
 require('dotenv').config();
+
+// ✅ Validação para registro
+exports.validateRegister = [
+  check('name').trim().escape().notEmpty().withMessage('Nome é obrigatório.'),
+  check('address').trim().escape().notEmpty().withMessage('Endereço é obrigatório.'),
+  check('phone').trim().isLength({ min: 10 }).withMessage('Telefone inválido.'),
+  check('email').isEmail().normalizeEmail().withMessage('E-mail inválido.'),
+  check('password').isStrongPassword().withMessage('A senha deve conter letras maiúsculas, minúsculas, número e caractere especial.')
+];
+
+// ✅ Validação para login
+exports.validateLogin = [
+  check('email').isEmail().normalizeEmail().withMessage('E-mail inválido.'),
+  check('password').notEmpty().withMessage('Senha é obrigatória.')
+];
 
 // ✅ REGISTRO (Cadastro de novo usuário)
 exports.register = async (req, res) => {
-  const { name, address, phone, email, password } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  if (!name || !address || !phone || !email || !password) {
-    return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
-  }
+  const { name, address, phone, email, password } = req.body;
 
   try {
     const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ error: 'E-mail já cadastrado.' });
-    }
+    if (existingUser) return res.status(400).json({ error: 'E-mail já cadastrado.' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({
-      name,
-      address,
-      phone,
+      name: sanitizeHtml(name),
+      address: sanitizeHtml(address),
+      phone: sanitizeHtml(phone),
       email,
       password: hashedPassword
     });
@@ -36,27 +50,21 @@ exports.register = async (req, res) => {
 
 // ✅ LOGIN (Autenticação)
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  if (!email || !password) {
-    return res.status(400).json({ error: 'E-mail e senha são obrigatórios.' });
-  }
+  const { email, password } = req.body;
 
   try {
     const user = await User.findOne({ where: { email } });
 
-    if (!user) {
-      return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
-    }
+    if (!user) return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
-    }
+    if (!isPasswordValid) return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
 
     const token = jwt.sign(
-      { id: user.id }, // Esse ID será usado no `authenticate.js`
+      { id: user.id },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );

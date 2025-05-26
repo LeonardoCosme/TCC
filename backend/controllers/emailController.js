@@ -1,13 +1,22 @@
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
+const { check, validationResult } = require('express-validator');
+const sanitizeHtml = require('sanitize-html');
 require('dotenv').config();
 
+// ✅ Middleware de validação
+exports.validateForgotPassword = [
+  check('email').isEmail().normalizeEmail().withMessage('E-mail inválido.')
+];
+
+// ✅ Envia e-mail com link de redefinição
 exports.forgotPassword = async (req, res) => {
-  const { email } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  if (!email) return res.status(400).json({ error: 'Email obrigatório' });
+  const cleanEmail = sanitizeHtml(req.body.email);
 
-  const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+  const token = jwt.sign({ email: cleanEmail }, process.env.JWT_SECRET, { expiresIn: '15m' });
 
   const transporter = nodemailer.createTransport({
     host: 'smtp.ethereal.email',
@@ -22,10 +31,10 @@ exports.forgotPassword = async (req, res) => {
   try {
     const info = await transporter.sendMail({
       from: process.env.EMAIL_FROM,
-      to: email,
+      to: cleanEmail,
       subject: 'Redefinição de Senha',
       html: `<p>Clique no link abaixo para redefinir sua senha:</p>
-             <a href="http://localhost:3000/resetar-senha?token=${token}">
+             <a href="${process.env.FRONTEND_URL}/resetar-senha?token=${token}">
                Redefinir senha
              </a>`,
     });

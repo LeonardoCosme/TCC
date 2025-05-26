@@ -76,17 +76,32 @@ export default function CadastroPage() {
       return;
     }
 
-    const response = await fetch('http://localhost:3001/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    });
+    try {
+      const response = await fetch('http://localhost:3001/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
 
-    if (response.ok) {
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (Array.isArray(data.errors)) {
+          const messages = data.errors.map((err: any) => `• ${err.msg}`).join('\n');
+          alert(`Erros de validação:\n${messages}`);
+        } else if (data.error) {
+          alert(data.error);
+        } else {
+          alert('Erro ao cadastrar. Verifique os dados.');
+        }
+        return;
+      }
+
       alert('Cadastro realizado com sucesso!');
       router.push('/');
-    } else {
-      alert('Erro ao cadastrar. Verifique os dados.');
+    } catch (error) {
+      console.error('Erro na requisição:', error);
+      alert('Erro de conexão com o servidor.');
     }
   };
 
@@ -121,15 +136,23 @@ export default function CadastroPage() {
           </p>
 
           <div className="relative">
-            <input name="password" type={showPassword ? "text" : "password"} placeholder="Senha" onChange={handleChange}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 pr-10" required />
-            <span
-              className="absolute right-3 top-3 cursor-pointer"
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Senha"
+              onChange={handleChange}
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2 pr-10"
+              required
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-3 cursor-pointer bg-transparent border-none"
               onClick={() => setShowPassword(!showPassword)}
               title={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              aria-pressed={showPassword}
             >
               {showPassword ? '🙈' : '👁️'}
-            </span>
+            </button>
           </div>
 
           <ul className="text-sm space-y-1">
@@ -141,17 +164,25 @@ export default function CadastroPage() {
           </ul>
 
           <div className="relative">
-            <input name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Confirmar Senha"
+            <input
+              name="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirmar Senha"
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 pr-10" required />
-            <span
-              className="absolute right-3 top-3 cursor-pointer"
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2 pr-10"
+              required
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-3 cursor-pointer bg-transparent border-none p-0"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               title={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
+              aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
             >
               {showConfirmPassword ? '🙈' : '👁️'}
-            </span>
+            </button>
           </div>
+
           <p className={`text-sm ${confirmPassword === formData.password ? 'text-green-600' : 'text-red-600'}`}>
             {confirmPassword && (confirmPassword === formData.password ? 'Senhas coincidem.' : 'As senhas não coincidem.')}
           </p>

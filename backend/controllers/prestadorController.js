@@ -1,8 +1,17 @@
-
 const { Prestador } = require('../models');
+const { check, validationResult } = require('express-validator');
 require('dotenv').config();
 
-// 🔍 Buscar dados do prestador logado
+// Validação para os campos do prestador
+exports.validatePrestador = [
+  check('nome').notEmpty().withMessage('Nome é obrigatório'),
+  check('cpf').notEmpty().withMessage('CPF é obrigatório'),
+  check('enderecoResidencial').notEmpty().withMessage('Endereço residencial é obrigatório'),
+  check('telefone').notEmpty().withMessage('Telefone é obrigatório'),
+  check('profissao').notEmpty().withMessage('Profissão é obrigatória'),
+];
+
+// Buscar dados do prestador logado
 exports.getMe = async (req, res) => {
   try {
     const prestador = await Prestador.findOne({
@@ -20,10 +29,15 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// 💾 Criar ou atualizar dados do prestador (sem campos de data de entrada/saída)
+// Criar ou atualizar dados do prestador
 exports.savePrestador = async (req, res) => {
-  const userId = req.userId;
+  // Verifica erros de validação
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
+  const userId = req.userId;
   const {
     nome,
     cpf,
@@ -32,7 +46,7 @@ exports.savePrestador = async (req, res) => {
     telefone,
     profissao,
     empresa,
-    cnpj
+    cnpj,
   } = req.body;
 
   try {
@@ -47,7 +61,7 @@ exports.savePrestador = async (req, res) => {
         telefone,
         profissao,
         empresa,
-        cnpj
+        cnpj,
       });
 
       return res.json({ message: 'Dados do prestador atualizados com sucesso!' });
@@ -62,7 +76,7 @@ exports.savePrestador = async (req, res) => {
       telefone,
       profissao,
       empresa,
-      cnpj
+      cnpj,
     });
 
     return res.status(201).json({ message: 'Prestador cadastrado com sucesso!' });

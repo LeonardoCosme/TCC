@@ -6,7 +6,7 @@ export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccess('');
     setError('');
@@ -23,9 +23,10 @@ export default function ForgotPasswordPage() {
       if (res.ok) {
         setSuccess('Link de redefinição enviado para seu e-mail.');
       } else {
-        setError(data.error || 'Erro ao enviar e-mail.');
+        setError(data.error ?? 'Erro ao enviar e-mail.');
       }
     } catch (err) {
+      console.error(err);
       setError('Erro de conexão com o servidor.');
     }
   };
@@ -33,7 +34,10 @@ export default function ForgotPasswordPage() {
   return (
     <Layout>
       <div className="flex items-center justify-center min-h-screen bg-orange-100 pt-28 pb-24">
-        <form onSubmit={handleSubmit} className="bg-white bg-opacity-80 p-8 rounded-2xl shadow-lg w-96 space-y-4 backdrop-blur-md">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white bg-opacity-80 p-8 rounded-2xl shadow-lg w-96 space-y-4 backdrop-blur-md"
+        >
           <h1 className="text-2xl font-bold text-center text-orange-500">Recuperar Senha</h1>
 
           <input

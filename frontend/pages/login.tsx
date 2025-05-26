@@ -13,27 +13,34 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
+      const res = await fetch(`${apiUrl}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const errorData = await res.json();
-        alert(errorData.error || 'Erro ao fazer login.');
+        if (Array.isArray(data.errors)) {
+          const message = data.errors.map((err: any) => `• ${err.msg}`).join('\n');
+          alert(`Erros de validação:\n${message}`);
+        } else if (data.error) {
+          alert(data.error);
+        } else {
+          alert('Erro ao fazer login.');
+        }
         return;
       }
 
-      const data = await res.json();
       saveToken(data.token);
       router.push('/home');
     } catch (error) {
-      alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.');
       console.error('Erro na requisição de login:', error);
+      alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.');
     }
   };
 
@@ -43,8 +50,9 @@ export default function LoginPage() {
         <div className="bg-white bg-opacity-80 p-8 rounded-2xl shadow-md w-full max-w-md mt-6">
           <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
           <form onSubmit={handleSubmit}>
-            <label className="block mb-2">Email</label>
+            <label htmlFor="email" className="block mb-2">Email</label>
             <input
+              id="email"
               type="email"
               required
               value={email}
@@ -52,9 +60,10 @@ export default function LoginPage() {
               className="w-full p-2 mb-4 border rounded focus:outline-none focus:ring-2 focus:ring-orange-300"
             />
 
-            <label className="block mb-2">Senha</label>
+            <label htmlFor="password" className="block mb-2">Senha</label>
             <div className="relative">
               <input
+                id="password"
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
@@ -65,6 +74,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute top-2 right-2 text-sm text-gray-500 hover:text-gray-700"
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 {showPassword ? 'Ocultar' : 'Mostrar'}
               </button>
@@ -86,7 +96,6 @@ export default function LoginPage() {
               <MailQuestion className="w-4 h-4 animate-pulse" />
               Esqueci minha senha
             </a>
-
             <a
               href="/cadastro"
               className="flex justify-center items-center gap-2 text-orange-500 hover:text-orange-600 transition-all hover:scale-105"

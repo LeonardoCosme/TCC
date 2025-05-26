@@ -13,7 +13,7 @@ export default function ResetarSenha() {
     }
   }, [router.query.token]);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const res = await fetch('http://localhost:3001/api/reset-password', {
@@ -25,10 +25,13 @@ export default function ResetarSenha() {
     const data = await res.json();
 
     if (res.ok) {
-      alert('Senha redefinida com sucesso! Você será redirecionado para a tela de login.');
+      alert(
+        'Senha redefinida com sucesso! Você será redirecionado para a tela de login.'
+      );
       router.push('/');
     } else {
-      alert(data.error || 'Erro ao redefinir a senha.');
+      // Aqui usamos ?? em vez de ||
+      alert(data.error ?? 'Erro ao redefinir a senha.');
     }
   };
 
@@ -37,8 +40,11 @@ export default function ResetarSenha() {
       <div className="bg-white bg-opacity-80 p-6 rounded-2xl shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold mb-4 text-center">Redefinir Senha</h2>
         <form onSubmit={handleSubmit}>
-          <label className="block mb-2">Nova Senha:</label>
+          <label htmlFor="new-password" className="block mb-2">
+            Nova Senha:
+          </label>
           <input
+            id="new-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

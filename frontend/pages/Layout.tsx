@@ -2,7 +2,11 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+type LayoutProps = Readonly<{
+  children: React.ReactNode;
+}>;
+
+export default function Layout({ children }: LayoutProps) {
   return (
     <>
       <Header />

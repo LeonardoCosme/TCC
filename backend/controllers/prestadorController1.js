@@ -1,5 +1,16 @@
 const { Prestador } = require('../models');
+const { check, validationResult } = require('express-validator');
+const sanitizeHtml = require('sanitize-html');
 require('dotenv').config();
+
+// 🚨 Middleware de validação
+exports.validatePrestador = [
+  check('nome').trim().escape().notEmpty().withMessage('Nome é obrigatório'),
+  check('cpf').matches(/^\d{11}$/).withMessage('CPF deve conter 11 dígitos numéricos'),
+  check('telefone').trim().isLength({ min: 10 }).withMessage('Telefone inválido'),
+  check('endereco_residencial').trim().escape().notEmpty().withMessage('Endereço residencial é obrigatório'),
+  check('profissao').trim().escape().notEmpty().withMessage('Profissão é obrigatória'),
+];
 
 // 🔍 Buscar dados do prestador logado
 exports.getMe = async (req, res) => {
@@ -23,11 +34,17 @@ exports.getMe = async (req, res) => {
 exports.savePrestador = async (req, res) => {
   const userId = req.userId;
 
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  // ✨ Sanitizar todos os campos de entrada
   const {
     nome,
     cpf,
-    endereco_residencial, // recebido do frontend
-    endereco_comercial,   // recebido do frontend
+    endereco_residencial,
+    endereco_comercial,
     telefone,
     profissao,
     empresa,
@@ -36,33 +53,29 @@ exports.savePrestador = async (req, res) => {
     cnpj
   } = req.body;
 
-  if (!nome || !cpf || !telefone || !endereco_residencial || !profissao) {
-    return res.status(400).json({ error: 'Preencha todos os campos obrigatórios.' });
-  }
+  const dadosSanitizados = {
+    userId,
+    nome: sanitizeHtml(nome),
+    cpf: sanitizeHtml(cpf),
+    telefone: sanitizeHtml(telefone),
+    enderecoResidencial: sanitizeHtml(endereco_residencial),
+    enderecoComercial: sanitizeHtml(endereco_comercial || ''),
+    profissao: sanitizeHtml(profissao),
+    empresa: sanitizeHtml(empresa || ''),
+    entrada,
+    saida,
+    cnpj: sanitizeHtml(cnpj || '')
+  };
 
   try {
     const existing = await Prestador.findOne({ where: { userId } });
 
-    const dados = {
-      userId,
-      nome,
-      cpf,
-      telefone,
-      enderecoResidencial: endereco_residencial,
-      enderecoComercial: endereco_comercial,
-      profissao,
-      empresa,
-      entrada,
-      saida,
-      cnpj
-    };
-
     if (existing) {
-      await existing.update(dados);
+      await existing.update(dadosSanitizados);
       return res.json({ message: 'Dados do prestador atualizados com sucesso!' });
     }
 
-    await Prestador.create(dados);
+    await Prestador.create(dadosSanitizados);
     return res.status(201).json({ message: 'Prestador cadastrado com sucesso!' });
 
   } catch (error) {
