@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { getToken } from '../utils/auth';
+import { useRouter } from 'next/router';
 
 interface Servico {
   id: number;
@@ -16,38 +17,36 @@ interface Servico {
 
 export default function MeusServicos() {
   const [servicos, setServicos] = useState<Servico[]>([]);
-  const [meuId, setMeuId] = useState<number | null>(null);
+  const [tipoUsuario, setTipoUsuario] = useState<'cliente' | 'prestador' | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const token = getToken();
     if (!token) return;
 
-    // 1º passo: buscar ID do usuário
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(res => res.json())
-      .then(user => {
-        setMeuId(user.id);
-
-        // 2º passo: buscar todos os serviços
-        return fetch(`${process.env.NEXT_PUBLIC_API_URL}/servicos`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+    const carregarServicos = async () => {
+      try {
+        const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/me`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
-      })
-      .then(res => res?.json())
-      .then(data => {
-        if (meuId !== null) {
-          const meusServicos = data.filter((s: Servico) => s.userId === meuId);
-          setServicos(meusServicos);
-        }
-      })
-      .catch(err => console.error('Erro ao carregar serviços:', err));
-  }, [meuId]);
+        const user = await userRes.json();
+
+        setTipoUsuario(user.tipoUsuario);
+
+        const servicosRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/servicos`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const todosServicos = await servicosRes.json();
+
+        const meusServicos = todosServicos.filter((s: Servico) => s.userId === user.id);
+        setServicos(meusServicos);
+      } catch (err) {
+        console.error('Erro ao carregar serviços:', err);
+      }
+    };
+
+    carregarServicos();
+  }, []);
 
   return (
     <Layout>
@@ -68,11 +67,22 @@ export default function MeusServicos() {
                 <h2 className="text-xl font-semibold text-orange-600 capitalize">{servico.tipo}</h2>
                 <p className="text-sm text-gray-700 mt-2">{servico.observacao}</p>
                 <p className="text-xs text-gray-500 mt-2">{servico.local}</p>
-                <p className="text-xs text-gray-600 font-semibold mt-1">R$ {parseFloat(servico.valor).toFixed(2)}</p>
+                <p className="text-xs text-gray-600 font-semibold mt-1">
+                  R$ {parseFloat(servico.valor).toFixed(2)}
+                </p>
                 {servico.urgente && (
                   <span className="inline-block text-xs text-white bg-red-500 px-2 py-1 rounded mt-2">
                     Urgente
                   </span>
+                )}
+
+                {tipoUsuario === 'cliente' && (
+                  <button
+                    onClick={() => router.push(`/agendamento?servicoId=${servico.id}`)}
+                    className="mt-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded transition"
+                  >
+                    Agendar
+                  </button>
                 )}
               </div>
             ))}

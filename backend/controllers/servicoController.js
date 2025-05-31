@@ -1,4 +1,4 @@
-const { Servico } = require('../models');
+const { Servico, User } = require('../models');
 const { check, validationResult } = require('express-validator');
 const sanitizeHtml = require('sanitize-html');
 
@@ -47,7 +47,7 @@ exports.createServico = async (req, res) => {
   }
 };
 
-// 🔍 Listar serviços
+// 🔍 Listar todos os serviços
 exports.getServicos = async (req, res) => {
   try {
     const servicos = await Servico.findAll({
@@ -58,5 +58,40 @@ exports.getServicos = async (req, res) => {
   } catch (error) {
     console.error('Erro ao buscar serviços:', error);
     return res.status(500).json({ error: 'Erro ao buscar serviços' });
+  }
+};
+
+// 🔍 Buscar serviço por ID (para página de agendamento)
+exports.getServicoById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const servico = await Servico.findOne({
+      where: { id },
+      include: {
+        model: User,
+        as: 'User', // usa o alias conforme definido no model Servico
+        attributes: ['id', 'name', 'phone']
+      }
+    });
+
+    if (!servico) {
+      return res.status(404).json({ error: 'Serviço não encontrado' });
+    }
+
+    return res.json({
+      id: servico.id,
+      tipo: servico.tipo,
+      observacao: servico.observacao,
+      valor: servico.valor,
+      local: servico.local,
+      urgente: servico.urgente,
+      nome: servico.User.name,
+      telefone: servico.User.phone,
+      userId: servico.User.id
+    });
+  } catch (error) {
+    console.error('Erro ao buscar serviço por ID:', error);
+    return res.status(500).json({ error: 'Erro ao buscar serviço' });
   }
 };

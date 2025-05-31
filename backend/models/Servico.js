@@ -1,36 +1,30 @@
-const { DataTypes } = require('sequelize');
-
-module.exports = (sequelize) => {
+// models/Servico.js
+module.exports = (sequelize, DataTypes) => {
   const Servico = sequelize.define('Servico', {
+    nome: DataTypes.STRING,
+    telefone: DataTypes.STRING,
+    tipo: DataTypes.STRING,
+    observacao: DataTypes.STRING,
+    local: DataTypes.STRING,
+    valor: DataTypes.FLOAT,
+    urgente: DataTypes.BOOLEAN,
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'user_id'
-    },
-    nome: DataTypes.STRING,
-    telefone: DataTypes.STRING,
-    tipo: DataTypes.STRING,
-    observacao: DataTypes.TEXT,
-    local: DataTypes.STRING,
-    valor: DataTypes.DECIMAL(10, 2),
-    urgente: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
-    criadoEm: {
-      type: DataTypes.DATE,
-      field: 'criado_em'
-    },
-    atualizadoEm: {
-      type: DataTypes.DATE,
-      field: 'atualizado_em'
     }
   }, {
     tableName: 'servicos',
-    createdAt: 'criadoEm',
-    updatedAt: 'atualizadoEm',
-    timestamps: true
+    createdAt: 'criado_em',
+    updatedAt: 'atualizado_em'
   });
+
+  Servico.associate = (models) => {
+    Servico.belongsTo(models.User, {
+      foreignKey: 'userId',
+      as: 'User'
+    });
+  };
 
   return Servico;
 };

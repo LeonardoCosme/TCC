@@ -23,9 +23,7 @@ export default function CadastrarServicoPopup({ isOpen, onClose, onSuccess }: Pr
     if (!token) return;
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.json())
       .then(data => {
@@ -40,19 +38,11 @@ export default function CadastrarServicoPopup({ isOpen, onClose, onSuccess }: Pr
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const target = e.target as HTMLInputElement;
-
-    if (target.type === 'checkbox') {
-      setFormData(prev => ({
-        ...prev,
-        [target.name]: target.checked,
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [target.name]: target.value,
-      }));
-    }
+    const { name, type, value, checked } = e.target as HTMLInputElement;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,12 +58,12 @@ export default function CadastrarServicoPopup({ isOpen, onClose, onSuccess }: Pr
       },
       body: JSON.stringify({
         ...formData,
-        valor: formData.valor.replace(',', '.'),
+        valor: parseFloat(formData.valor.replace(',', '.'))
       }),
     });
 
     if (response.ok) {
-      alert('Serviço cadastrado com sucesso!');
+      alert('Serviço personalizado cadastrado com sucesso!');
       onClose();
       onSuccess?.();
     } else {
@@ -87,45 +77,51 @@ export default function CadastrarServicoPopup({ isOpen, onClose, onSuccess }: Pr
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-xl max-w-lg w-full shadow-lg">
-        <h2 className="text-xl font-bold mb-4 text-orange-600">Cadastrar Serviço</h2>
+        <h2 className="text-xl font-bold mb-4 text-orange-600">Criar Serviço Personalizado</h2>
+
         <form onSubmit={handleSubmit} className="space-y-3">
           <input name="nome" value={formData.nome} readOnly className="input-field bg-gray-100" />
           <input name="telefone" value={formData.telefone} readOnly className="input-field bg-gray-100" />
+
           <select name="tipo" value={formData.tipo} onChange={handleChange} className="input-field" required>
-            <option value="">Selecione o tipo de serviço</option>
-            <option value="eletricista">Eletricista</option>
-            <option value="encanador">Encanador</option>
-            <option value="marceneiro">Marceneiro</option>
-            <option value="pedreiro">Pedreiro</option>
-            <option value="motorista">Motorista</option>
-            <option value="limpeza">Limpeza</option>
-            <option value="jardinagem">Jardinagem</option>
-            <option value="outro">Outro</option>
+            <option value="">Selecione o tipo</option>
+            <option value="Eletricista">Eletricista</option>
+            <option value="Encanador">Encanador</option>
+            <option value="Marceneiro">Marceneiro</option>
+            <option value="Pedreiro">Pedreiro</option>
+            <option value="Motorista">Motorista</option>
+            <option value="Limpeza">Limpeza</option>
+            <option value="Jardinagem">Jardinagem</option>
+            <option value="Outro">Outro</option>
           </select>
+
           <textarea
             name="observacao"
             value={formData.observacao}
             onChange={handleChange}
-            placeholder="Descreva o serviço..."
+            placeholder="Descreva o serviço com detalhes..."
             className="input-field"
             required
           />
+
           <input
             name="local"
             value={formData.local}
             onChange={handleChange}
-            placeholder="Local do serviço"
+            placeholder="Endereço ou região do serviço"
             className="input-field"
             required
           />
+
           <input
             name="valor"
             value={formData.valor}
             onChange={handleChange}
-            placeholder="Valor sugerido (ex: 150)"
+            placeholder="Valor sugerido (ex: 150.00)"
             className="input-field"
             required
           />
+
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -135,18 +131,12 @@ export default function CadastrarServicoPopup({ isOpen, onClose, onSuccess }: Pr
             />
             <span>Marcar como urgente</span>
           </label>
+
           <div className="flex justify-end gap-2 mt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded bg-gray-300"
-            >
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded bg-gray-300">
               Cancelar
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded bg-orange-500 text-white"
-            >
+            <button type="submit" className="px-4 py-2 rounded bg-orange-500 text-white">
               Salvar
             </button>
           </div>

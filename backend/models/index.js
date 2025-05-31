@@ -12,10 +12,12 @@ const sequelize = new Sequelize(
   }
 );
 
-// Importa os modelos passando a conexão
-const User = require('./User')(sequelize);
-const Prestador = require('./Prestador')(sequelize);
-const Servico = require('./Servico')(sequelize); // ✅ ADICIONADO
+// Importa os modelos passando a conexão e os DataTypes
+const User = require('./User')(sequelize, Sequelize.DataTypes);
+const Prestador = require('./Prestador')(sequelize, Sequelize.DataTypes);
+const Servico = require('./Servico')(sequelize, Sequelize.DataTypes);
+const Agendamento = require('./Agendamento')(sequelize, Sequelize.DataTypes);
+const ServicoDisponivel = require('./ServicoDisponivel')(sequelize, Sequelize.DataTypes); // ✅ Novo modelo
 
 // Exporta os modelos e a conexão
 module.exports = {
@@ -23,5 +25,14 @@ module.exports = {
   Sequelize,
   User,
   Prestador,
-  Servico // ✅ ADICIONADO
+  Servico,
+  Agendamento,
+  ServicoDisponivel // ✅ Incluído na exportação
 };
+
+// Executa as associações se existirem
+Object.values(module.exports).forEach((model) => {
+  if (model.associate) {
+    model.associate(module.exports);
+  }
+});

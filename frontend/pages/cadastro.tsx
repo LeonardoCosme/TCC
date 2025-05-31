@@ -8,7 +8,8 @@ export default function CadastroPage() {
     address: '',
     phone: '',
     email: '',
-    password: ''
+    password: '',
+    tipoUsuario: 'cliente' // default
   });
 
   const [validations, setValidations] = useState({
@@ -49,7 +50,10 @@ export default function CadastroPage() {
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    setValidations({ ...validations, [name]: validateInput(name, value) });
+
+    if (name in validations) {
+      setValidations({ ...validations, [name]: validateInput(name, value) });
+    }
 
     if (name === 'password') {
       setPasswordCriteria({
@@ -186,6 +190,19 @@ export default function CadastroPage() {
           <p className={`text-sm ${confirmPassword === formData.password ? 'text-green-600' : 'text-red-600'}`}>
             {confirmPassword && (confirmPassword === formData.password ? 'Senhas coincidem.' : 'As senhas não coincidem.')}
           </p>
+
+          {/* Tipo de usuário */}
+          <label className="block text-sm text-gray-700">Tipo de usuário</label>
+          <select
+            name="tipoUsuario"
+            value={formData.tipoUsuario}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-orange-300"
+            required
+          >
+            <option value="cliente">Cliente</option>
+            <option value="prestador">Prestador</option>
+          </select>
 
           <button type="submit"
             className="w-full bg-orange-400 text-white p-2 rounded hover:bg-orange-500 transition duration-200">

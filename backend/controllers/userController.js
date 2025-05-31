@@ -11,7 +11,18 @@ exports.validateRegister = [
   check('address').trim().escape().notEmpty().withMessage('Endereço é obrigatório.'),
   check('phone').trim().isLength({ min: 10 }).withMessage('Telefone inválido.'),
   check('email').isEmail().normalizeEmail().withMessage('E-mail inválido.'),
-  check('password').isStrongPassword().withMessage('A senha deve conter letras maiúsculas, minúsculas, número e caractere especial.')
+  check('password')
+    .isStrongPassword({
+      minLength: 6,
+      minLowercase: 1,
+      minUppercase: 1,
+      minNumbers: 1,
+      minSymbols: 1
+    })
+    .withMessage('A senha deve conter no mínimo 6 caracteres, incluindo letra maiúscula, minúscula, número e símbolo.'),
+  check('tipoUsuario')
+    .isIn(['cliente', 'prestador'])
+    .withMessage('Tipo de usuário inválido.')
 ];
 
 // ✅ Validação para login
@@ -25,7 +36,7 @@ exports.register = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const { name, address, phone, email, password } = req.body;
+  const { name, address, phone, email, password, tipoUsuario } = req.body;
 
   try {
     const existingUser = await User.findOne({ where: { email } });
@@ -38,7 +49,8 @@ exports.register = async (req, res) => {
       address: sanitizeHtml(address),
       phone: sanitizeHtml(phone),
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      tipoUsuario
     });
 
     return res.status(201).json({ message: 'Usuário cadastrado com sucesso!' });
@@ -74,7 +86,8 @@ exports.login = async (req, res) => {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        tipoUsuario: user.tipoUsuario
       }
     });
   } catch (error) {
@@ -87,7 +100,7 @@ exports.login = async (req, res) => {
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findByPk(req.userId, {
-      attributes: ['id', 'name', 'address', 'phone', 'email']
+      attributes: ['id', 'name', 'address', 'phone', 'email', 'tipoUsuario']
     });
 
     if (!user) {

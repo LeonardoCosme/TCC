@@ -36,8 +36,18 @@ export default function LoginPage() {
         return;
       }
 
+      // Armazena o token
       saveToken(data.token);
-      router.push('/home');
+
+      // Armazena o tipo do usuário no localStorage (ou sessionStorage se preferir)
+      localStorage.setItem('tipoUsuario', data.user.tipoUsuario);
+
+      // Redireciona para a tela apropriada
+      if (data.user.tipoUsuario === 'prestador') {
+        router.push('/painel-prestador'); // você pode criar essa rota
+      } else {
+        router.push('/home'); // cliente vai pra tela padrão
+      }
     } catch (error) {
       console.error('Erro na requisição de login:', error);
       alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.');

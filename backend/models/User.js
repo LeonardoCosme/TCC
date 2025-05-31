@@ -40,10 +40,21 @@ module.exports = (sequelize) => {
       validate: {
         notEmpty: { msg: 'A senha é obrigatória.' }
       }
+    },
+    tipoUsuario: {
+      type: DataTypes.ENUM('cliente', 'prestador'),
+      allowNull: false,
+      defaultValue: 'cliente',
+      validate: {
+        isIn: {
+          args: [['cliente', 'prestador']],
+          msg: 'Tipo de usuário inválido.'
+        }
+      }
     }
   }, {
     tableName: 'users',
-    timestamps: false,  // DESATIVADO
+    timestamps: false,
     underscored: true
   });
 
