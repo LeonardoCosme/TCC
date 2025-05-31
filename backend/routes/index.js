@@ -1,4 +1,3 @@
-// routes/index.js
 const express = require('express');
 const router = express.Router();
 
@@ -36,9 +35,10 @@ router.get('/servicos/:id', authenticate, servicoController.getServicoById);
 router.post('/agendamentos', authenticate, agendamentoController.criar);
 router.get('/agendamentos/cliente', authenticate, agendamentoController.listarPorCliente);
 router.get('/agendamentos/prestador', authenticate, agendamentoController.listarPorPrestador);
+router.patch('/agendamentos/:id/aceitar', authenticate, agendamentoController.aceitar); // ✅ Novo endpoint
 
 // ==================== ✅ ROTAS DE SERVIÇOS DISPONÍVEIS (fixos) ====================
-router.get('/servicos-disponiveis', servicosDisponiveisController.listar); // ✅ Nova rota
+router.get('/servicos-disponiveis', servicosDisponiveisController.listar);
 
 // 🚪 Exporta as rotas agrupadas em '/api' no server.js
 module.exports = router;

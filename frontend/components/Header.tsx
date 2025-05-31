@@ -36,57 +36,70 @@ export default function Header() {
     router.push('/login');
   };
 
+  const baseBtnClasses = 'px-3 py-1 rounded font-semibold transition text-sm md:text-base';
+  const activeBtn = `${baseBtnClasses} bg-[#FFE8C4] hover:bg-[#F89D13] hover:text-white`;
+
   return (
     <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/">
           <Image
-            src="/logo_projeto.jpeg"
+            src="/MA_logo_solid.png"
             alt="Logo Marido de Aluguel"
             width={60}
             height={60}
-            style={{ width: 'auto', height: 'auto' }}
             className="cursor-pointer"
           />
         </Link>
 
-        <nav className="space-x-4 text-sm md:text-base text-gray-700">
+        <nav className="space-x-4 text-gray-700 flex items-center">
           {!isLogged && rotaAtual !== '/login' && (
-            <Link href="/login">
-              <span className="hover:text-orange-600 transition">Login</span>
+            <Link href="/login" className={activeBtn}>
+              Login
             </Link>
           )}
 
           {!isLogged && rotaAtual !== '/cadastro' && (
-            <Link href="/cadastro">
-              <span className="hover:text-orange-600 transition">Cadastrar</span>
+            <Link href="/cadastro" className={activeBtn}>
+              Cadastrar
             </Link>
           )}
 
           {isLogged && tipoUsuario === 'cliente' && (
             <>
               {rotaAtual !== '/meus-servicos' && (
-                <Link href="/meus-servicos">
-                  <span className="hover:text-orange-600 transition">Meus Serviços</span>
+                <Link href="/meus-servicos" className={activeBtn}>
+                  Meus Serviços
                 </Link>
               )}
               {rotaAtual !== '/meus-agendamentos' && (
-                <Link href="/meus-agendamentos">
-                  <span className="hover:text-orange-600 transition">Meus Agendamentos</span>
+                <Link href="/meus-agendamentos" className={activeBtn}>
+                  Meus Agendamentos
                 </Link>
               )}
-              <button onClick={handleLogout} className="text-red-600 hover:text-red-800 ml-4">Sair</button>
+              <button
+                onClick={handleLogout}
+                className="ml-4 px-3 py-1 rounded font-semibold text-red-600 border border-red-600 hover:bg-red-600 hover:text-white transition"
+              >
+                Sair
+              </button>
+
             </>
           )}
 
           {isLogged && tipoUsuario === 'prestador' && (
             <>
-              {rotaAtual !== '/agendamentos-prestador' && (
-                <Link href="/agendamentos-prestador">
-                  <span className="hover:text-orange-600 transition">Agendamentos</span>
+              {rotaAtual !== '/agendamentos-recebidos' && (
+                <Link href="/agendamentos-recebidos" className={activeBtn}>
+                  Agendamentos
                 </Link>
               )}
-              <button onClick={handleLogout} className="text-red-600 hover:text-red-800 ml-4">Sair</button>
+              <button
+                onClick={handleLogout}
+                className="ml-4 px-3 py-1 rounded font-semibold text-red-600 border border-red-600 hover:bg-red-600 hover:text-white transition">
+                Sair
+              </button>
+
             </>
           )}
         </nav>

@@ -21,7 +21,7 @@ export default function FloatingLogoutButton() {
         })
           .then(res => res.json())
           .then(data => {
-            setNome(data.name || 'Usuário');
+            setNome(data.name ?? 'Usuário');
           })
           .catch(() => setNome('Usuário'));
       }

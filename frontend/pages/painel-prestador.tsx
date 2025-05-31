@@ -20,12 +20,15 @@ export default function PainelPrestador() {
     const token = getToken();
     if (!token) return;
 
-    fetch('http://localhost:3001/api/prestador/agendamentos', {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/agendamentos/prestador`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Erro ao buscar agendamentos');
+        return res.json();
+      })
       .then(data => setAgendamentos(data))
       .catch(err => console.error('Erro ao buscar agendamentos:', err))
       .finally(() => setLoading(false));
