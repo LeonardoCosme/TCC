@@ -8,8 +8,8 @@ import { useRouter } from 'next/router';
 export default function Header() {
   const [isLogged, setIsLogged] = useState(false);
   const [tipoUsuario, setTipoUsuario] = useState<'cliente' | 'prestador' | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const router = useRouter();
-
   const rotaAtual = router.pathname;
 
   useEffect(() => {
@@ -22,6 +22,7 @@ export default function Header() {
         .then(res => res.json())
         .then(user => {
           setTipoUsuario(user.tipoUsuario);
+          setUserName(user.name);
         })
         .catch(() => {
           setIsLogged(false);
@@ -77,13 +78,20 @@ export default function Header() {
                   Meus Agendamentos
                 </Link>
               )}
+              {userName && (
+                <button
+                  onClick={() => router.push('/meus-dados')}
+                  className="px-3 py-1 rounded text-orange-600 border border-orange-400 hover:bg-orange-100 transition"
+                >
+                  {userName.split(' ')[0]}
+                </button>
+              )}
               <button
                 onClick={handleLogout}
-                className="ml-4 px-3 py-1 rounded font-semibold text-red-600 border border-red-600 hover:bg-red-600 hover:text-white transition"
+                className="ml-2 px-3 py-1 rounded font-semibold text-red-600 border border-red-600 hover:bg-red-600 hover:text-white transition"
               >
                 Sair
               </button>
-
             </>
           )}
 
@@ -94,12 +102,20 @@ export default function Header() {
                   Agendamentos
                 </Link>
               )}
+              {userName && (
+                <button
+                  onClick={() => router.push('/meus-dados')}
+                  className="px-3 py-1 rounded text-orange-600 border border-orange-400 hover:bg-orange-100 transition"
+                >
+                  {userName.split(' ')[0]}
+                </button>
+              )}
               <button
                 onClick={handleLogout}
-                className="ml-4 px-3 py-1 rounded font-semibold text-red-600 border border-red-600 hover:bg-red-600 hover:text-white transition">
+                className="ml-2 px-3 py-1 rounded font-semibold text-red-600 border border-red-600 hover:bg-red-600 hover:text-white transition"
+              >
                 Sair
               </button>
-
             </>
           )}
         </nav>
