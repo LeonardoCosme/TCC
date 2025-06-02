@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true
   });
 
-  // ✅ Associações
+  // Associações
   Agendamento.associate = (models) => {
     Agendamento.belongsTo(models.User, {
       as: 'prestador',

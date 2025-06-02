@@ -45,6 +45,7 @@ module.exports = (sequelize) => {
       type: DataTypes.ENUM('cliente', 'prestador'),
       allowNull: false,
       defaultValue: 'cliente',
+      field: 'tipo_usuario',
       validate: {
         isIn: {
           args: [['cliente', 'prestador']],

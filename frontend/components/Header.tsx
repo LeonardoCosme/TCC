@@ -78,6 +78,16 @@ export default function Header() {
                   Meus Agendamentos
                 </Link>
               )}
+              {rotaAtual !== '/contratar-prestador' && (
+                <Link href="/contratar-prestador" className={activeBtn}>
+                  Cadastrar Novo Serviço
+                </Link>
+              )}
+              {rotaAtual !== '/servicos-fixos' && (
+                <Link href="/servicos-fixos" className={activeBtn}>
+                  Serviços Fixos
+                </Link>
+              )}
               {userName && (
                 <button
                   onClick={() => router.push('/meus-dados')}

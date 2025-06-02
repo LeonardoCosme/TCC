@@ -1,3 +1,4 @@
+'use client';
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { getToken } from '../utils/auth';
@@ -57,35 +58,39 @@ export default function MeusServicos() {
           <p className="text-center text-gray-600">Você ainda não cadastrou nenhum serviço.</p>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-            {servicos.map((servico) => (
-              <div
-                key={servico.id}
-                className={`p-4 rounded-xl shadow-md border-2 ${
-                  servico.urgente ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-white'
-                }`}
-              >
-                <h2 className="text-xl font-semibold text-orange-600 capitalize">{servico.tipo}</h2>
-                <p className="text-sm text-gray-700 mt-2">{servico.observacao}</p>
-                <p className="text-xs text-gray-500 mt-2">{servico.local}</p>
-                <p className="text-xs text-gray-600 font-semibold mt-1">
-                  R$ {parseFloat(servico.valor).toFixed(2)}
-                </p>
-                {servico.urgente && (
-                  <span className="inline-block text-xs text-white bg-red-500 px-2 py-1 rounded mt-2">
-                    Urgente
-                  </span>
-                )}
+            {servicos.map((servico) => {
+              const estiloCard = servico.urgente
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-200 bg-white';
 
-                {tipoUsuario === 'cliente' && (
-                  <button
-                    onClick={() => router.push(`/agendamento?servicoId=${servico.id}`)}
-                    className="mt-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded transition"
-                  >
-                    Agendar
-                  </button>
-                )}
-              </div>
-            ))}
+              return (
+                <div
+                  key={servico.id}
+                  className={`p-4 rounded-xl shadow-md border-2 ${estiloCard}`}
+                >
+                  <h2 className="text-xl font-semibold text-orange-600 capitalize">{servico.tipo}</h2>
+                  <p className="text-sm text-gray-700 mt-2">{servico.observacao}</p>
+                  <p className="text-xs text-gray-500 mt-2">{servico.local}</p>
+                  <p className="text-xs text-gray-600 font-semibold mt-1">
+                    R$ {parseFloat(servico.valor).toFixed(2)}
+                  </p>
+                  {servico.urgente && (
+                    <span className="inline-block text-xs text-white bg-red-500 px-2 py-1 rounded mt-2">
+                      Urgente
+                    </span>
+                  )}
+
+                  {tipoUsuario === 'cliente' && (
+                    <button
+                      onClick={() => router.push(`/agendamento?servicoId=${servico.id}`)}
+                      className="mt-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded transition"
+                    >
+                      Agendar
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </main>

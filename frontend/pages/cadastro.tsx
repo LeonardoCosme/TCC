@@ -4,23 +4,30 @@ import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 
 export default function CadastroPage() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     name: '',
     address: '',
     phone: '',
     email: '',
     password: '',
-    tipoUsuario: 'cliente'
+    tipoUsuario: 'cliente',
+    cpf: ''
   });
+
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [validations, setValidations] = useState({
     name: false,
     phone: false,
     email: false,
-    password: false
+    password: false,
+    cpf: false
   });
 
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordCriteria, setPasswordCriteria] = useState({
     length: false,
     upper: false,
@@ -28,10 +35,6 @@ export default function CadastroPage() {
     number: false,
     special: false
   });
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const router = useRouter();
 
   const validateInput = (name: string, value: string) => {
     switch (name) {
@@ -43,17 +46,19 @@ export default function CadastroPage() {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
       case 'password':
         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d@$!%*?&]{6,}$/.test(value);
+      case 'cpf':
+        return /^\d{11}$/.test(value);
       default:
         return true;
     }
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [name]: value }));
 
     if (name in validations) {
-      setValidations({ ...validations, [name]: validateInput(name, value) });
+      setValidations(prev => ({ ...prev, [name]: validateInput(name, value) }));
     }
 
     if (name === 'password') {
@@ -67,7 +72,7 @@ export default function CadastroPage() {
     }
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const isValid = Object.values(validations).every(Boolean);
 
@@ -120,56 +125,54 @@ export default function CadastroPage() {
           <h1 className="text-3xl font-bold text-center text-orange-500">Cadastro</h1>
 
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nome completo</label>
-            <input id="name" name="name" placeholder="Nome completo" onChange={handleChange}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2" required />
+            <label htmlFor="name">Nome completo</label>
+            <input id="name" name="name" value={formData.name} onChange={handleChange} required
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2" />
             <p className={formData.name && !validations.name ? 'text-red-600 text-sm' : 'text-green-600 text-sm'}>
               {formData.name && (validations.name ? 'Nome válido.' : 'Apenas letras são permitidas.')}
             </p>
           </div>
 
           <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700">Endereço</label>
-            <input id="address" name="address" placeholder="Endereço" onChange={handleChange}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2" required />
-          </div>
-
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Telefone</label>
-            <input id="phone" name="phone" placeholder="Telefone (somente números)" maxLength={11} onChange={handleChange}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2" required />
-            <p className={formData.phone && !validations.phone ? 'text-red-600 text-sm' : 'text-green-600 text-sm'}>
-              {formData.phone && (validations.phone ? 'Telefone válido.' : 'Digite exatamente 11 números (DDD + número).')}
+            <label htmlFor="cpf">CPF</label>
+            <input id="cpf" name="cpf" maxLength={11} value={formData.cpf} onChange={handleChange} required
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2" />
+            <p className={formData.cpf && !validations.cpf ? 'text-red-600 text-sm' : 'text-green-600 text-sm'}>
+              {formData.cpf && (validations.cpf ? 'CPF válido.' : 'Digite exatamente 11 números.')}
             </p>
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">E-mail</label>
-            <input id="email" name="email" type="email" placeholder="E-mail" onChange={handleChange}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2" required />
+            <label htmlFor="address">Endereço</label>
+            <input id="address" name="address" value={formData.address} onChange={handleChange} required
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2" />
+          </div>
+
+          <div>
+            <label htmlFor="phone">Telefone</label>
+            <input id="phone" name="phone" maxLength={11} value={formData.phone} onChange={handleChange} required
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2" />
+            <p className={formData.phone && !validations.phone ? 'text-red-600 text-sm' : 'text-green-600 text-sm'}>
+              {formData.phone && (validations.phone ? 'Telefone válido.' : 'Digite 11 números.')}
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="email">E-mail</label>
+            <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2" />
             <p className={formData.email && !validations.email ? 'text-red-600 text-sm' : 'text-green-600 text-sm'}>
-              {formData.email && (validations.email ? 'E-mail válido.' : 'Formato de e-mail inválido.')}
+              {formData.email && (validations.email ? 'E-mail válido.' : 'Formato inválido.')}
             </p>
           </div>
 
           <div className="relative">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Senha</label>
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Senha"
-              onChange={handleChange}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 pr-10"
-              required
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-9 cursor-pointer bg-transparent border-none"
-              onClick={() => setShowPassword(!showPassword)}
-              title={showPassword ? "Ocultar senha" : "Mostrar senha"}
-              aria-pressed={showPassword}
-            >
+            <label htmlFor="password">Senha</label>
+            <input id="password" name="password" type={showPassword ? 'text' : 'password'}
+              value={formData.password} onChange={handleChange} required
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2 pr-10" />
+            <button type="button" onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-9" title="Mostrar senha">
               {showPassword ? '🙈' : '👁️'}
             </button>
           </div>
@@ -183,23 +186,12 @@ export default function CadastroPage() {
           </ul>
 
           <div className="relative">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirmar Senha</label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirmar Senha"
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 pr-10"
-              required
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-9 cursor-pointer bg-transparent border-none p-0"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              title={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
-              aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
-            >
+            <label htmlFor="confirmPassword">Confirmar Senha</label>
+            <input id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'}
+              value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2 pr-10" />
+            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-9" title="Mostrar senha">
               {showConfirmPassword ? '🙈' : '👁️'}
             </button>
           </div>
@@ -209,22 +201,15 @@ export default function CadastroPage() {
           </p>
 
           <div>
-            <label htmlFor="tipoUsuario" className="block text-sm font-medium text-gray-700">Tipo de usuário</label>
-            <select
-              id="tipoUsuario"
-              name="tipoUsuario"
-              value={formData.tipoUsuario}
-              onChange={handleChange}
-              className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-orange-300"
-              required
-            >
+            <label htmlFor="tipoUsuario">Tipo de usuário</label>
+            <select id="tipoUsuario" name="tipoUsuario" value={formData.tipoUsuario} onChange={handleChange}
+              className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-orange-300">
               <option value="cliente">Cliente</option>
               <option value="prestador">Prestador</option>
             </select>
           </div>
 
-          <button type="submit"
-            className="w-full bg-orange-400 text-white p-2 rounded hover:bg-orange-500 transition duration-200">
+          <button type="submit" className="w-full bg-orange-400 text-white p-2 rounded hover:bg-orange-500 transition duration-200">
             Cadastrar
           </button>
         </form>

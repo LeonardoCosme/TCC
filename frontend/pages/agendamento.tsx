@@ -7,18 +7,19 @@ import { getToken } from '../utils/auth';
 interface Servico {
   id: number;
   tipo: string;
-  observacao: string;
-  valor: string;
-  local: string;
-  urgente: boolean;
-  nome: string;
-  telefone: string;
-  userId: number;
+  observacao?: string;
+  valor?: string;
+  local?: string;
+  urgente?: boolean;
+  nome?: string;
+  telefone?: string;
+  userId?: number | null;
+  descricao?: string;
 }
 
 export default function AgendamentoPage() {
   const router = useRouter();
-  const { servicoId } = router.query;
+  const { servicoId, servicoFixoId } = router.query;
 
   const [servico, setServico] = useState<Servico | null>(null);
   const [clienteId, setClienteId] = useState<number | null>(null);
@@ -28,66 +29,86 @@ export default function AgendamentoPage() {
 
   useEffect(() => {
     const token = getToken();
-    if (!token || !servicoId) return;
+    if (!token) return;
 
-    // Buscar informações do usuário logado (cliente)
+    // Obter ID do cliente
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.json())
       .then(user => setClienteId(user.id))
-      .catch(err => {
-        console.error('Erro ao buscar cliente:', err);
-        alert('Erro ao buscar informações do cliente.');
-      });
+      .catch(() => alert('Erro ao obter cliente'));
 
-    // Buscar serviço
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/servicos/${servicoId}`, {
+    // Determinar o endpoint
+    let endpoint = '';
+    if (servicoId) {
+      endpoint = `/servicos/${servicoId}`;
+    } else if (servicoFixoId) {
+      endpoint = `/servicos-disponiveis/${servicoFixoId}`;
+    } else {
+      console.warn('Nenhum ID de serviço fornecido');
+      return;
+    }
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.json())
-      .then(data => setServico(data))
-      .catch(err => {
-        console.error('Erro ao carregar serviço:', err);
+      .then(data => {
+        if (servicoFixoId) {
+          setServico({
+            id: data.id,
+            tipo: data.tipo,
+            descricao: data.descricao,
+            userId: null,
+          });
+        } else {
+          setServico(data);
+        }
+      })
+      .catch(() => {
         alert('Erro ao carregar dados do serviço.');
-        router.push('/servicos-disponiveis');
+        router.push('/');
       });
-  }, [servicoId]);
+  }, [servicoId, servicoFixoId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = getToken();
-    if (!token || !servico || !clienteId) return;
+    if (!token || !clienteId || !servico) return;
 
     setLoading(true);
 
+    const body = {
+      clienteId,
+      prestadorId: servico.userId ?? null,
+      servico: servico.tipo,
+      dataAgendada,
+      horaAgendada,
+    };
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/agendamentos`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/agendamentos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          clienteId,
-          prestadorId: servico.userId,
-          servico: servico.tipo,
-          dataAgendada,
-          horaAgendada,
-        }),
+        body: JSON.stringify(body),
       });
 
-      const result = await response.json();
+      const result = await res.json();
 
-      if (response.ok) {
+      if (res.status === 409) {
+        alert(result.error ?? 'Horário já está ocupado. Tente outro.');
+      } else if (res.ok) {
         alert('Agendamento realizado com sucesso!');
         router.push('/meus-agendamentos');
       } else {
-        alert(result.error ?? 'Erro ao agendar o serviço.');
+        alert(result.error ?? 'Erro ao agendar.');
       }
-    } catch (error) {
-      console.error('Erro ao agendar:', error);
-      alert('Erro ao processar o agendamento.');
+    } catch (err) {
+      alert('Erro na requisição');
     } finally {
       setLoading(false);
     }
@@ -103,12 +124,15 @@ export default function AgendamentoPage() {
             <>
               <div className="space-y-2 text-sm text-gray-700">
                 <p><strong>Tipo:</strong> {servico.tipo}</p>
-                <p><strong>Descrição:</strong> {servico.observacao}</p>
-                <p><strong>Valor:</strong> R$ {parseFloat(servico.valor).toFixed(2)}</p>
-                <p><strong>Local:</strong> {servico.local}</p>
-                <p><strong>Urgente:</strong> {servico.urgente ? 'Sim' : 'Não'}</p>
-                <p><strong>Prestador:</strong> {servico.nome}</p>
-                <p><strong>Telefone:</strong> {servico.telefone}</p>
+                {servico.observacao && <p><strong>Descrição:</strong> {servico.observacao}</p>}
+                {servico.descricao && <p><strong>Descrição:</strong> {servico.descricao}</p>}
+                {servico.valor && <p><strong>Valor:</strong> R$ {parseFloat(servico.valor).toFixed(2)}</p>}
+                {servico.local && <p><strong>Local:</strong> {servico.local}</p>}
+                {servico.urgente !== undefined && (
+                  <p><strong>Urgente:</strong> {servico.urgente ? 'Sim' : 'Não'}</p>
+                )}
+                {servico.nome && <p><strong>Prestador:</strong> {servico.nome}</p>}
+                {servico.telefone && <p><strong>Telefone:</strong> {servico.telefone}</p>}
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">

@@ -1,17 +1,32 @@
 const { Agendamento, User } = require('../models');
 
-// ✅ Criar agendamento
+// ✅ Criar agendamento (prestadorId pode ser null)
 exports.criar = async (req, res) => {
   try {
     const { clienteId, prestadorId, servico, dataAgendada, horaAgendada } = req.body;
 
-    if (!clienteId || !prestadorId || !servico || !dataAgendada || !horaAgendada) {
+    if (!clienteId || !servico || !dataAgendada || !horaAgendada) {
       return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos.' });
+    }
+
+    // ⚠️ Verificar se o horário já está ocupado para o mesmo prestador
+    if (prestadorId) {
+      const conflito = await Agendamento.findOne({
+        where: {
+          prestadorId,
+          dataAgendada,
+          horaAgendada
+        }
+      });
+
+      if (conflito) {
+        return res.status(409).json({ error: 'Este horário já está ocupado com este prestador. Escolha outro.' });
+      }
     }
 
     const novoAgendamento = await Agendamento.create({
       clienteId,
-      prestadorId,
+      prestadorId: prestadorId ?? null,
       servico,
       dataAgendada,
       horaAgendada
@@ -82,6 +97,19 @@ exports.aceitar = async (req, res) => {
 
     if (agendamento.prestadorId) {
       return res.status(400).json({ error: 'Esse agendamento já foi aceito por outro prestador' });
+    }
+
+    // Verificar se o horário já está ocupado para este prestador
+    const conflito = await Agendamento.findOne({
+      where: {
+        prestadorId,
+        dataAgendada: agendamento.dataAgendada,
+        horaAgendada: agendamento.horaAgendada
+      }
+    });
+
+    if (conflito) {
+      return res.status(409).json({ error: 'Você já tem um agendamento neste horário.' });
     }
 
     agendamento.prestadorId = prestadorId;
