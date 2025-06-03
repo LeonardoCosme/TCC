@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     prestadorId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true, // ✅ Agora permite null
       field: 'prestador_id'
     },
     servico: {
